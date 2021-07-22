@@ -1,7 +1,7 @@
 
 /* SIGNING ACTION 
 
-COMPILE : gcc signing.c -lykpiv -o signing
+COMPILE : gcc signing.c -lcrypto -lykpiv -o signing
 */
 
 
