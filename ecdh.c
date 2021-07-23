@@ -36,7 +36,7 @@ void main()
   /* PIN verification before ECDH  Exchange*/
     int tries=100;
     res=ykpiv_verify(g_state, "123456", &tries );
-    if(res!0)
+    if(res!=0)
     {
         printf("PIN Verification Failed, Error Code: %d\n", res);
     }
