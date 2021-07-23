@@ -18,29 +18,27 @@ void main()
 {
    ykpiv_rc res;
    ykpiv_state *g_state;
+   
    /* Intialize*/
    res = ykpiv_init(&g_state, true);
    if(res!=0)
    {
-       printf("\n Initialization Unsuccessful");
+       printf("Initialization Failed, Error Code: %d\n", res);
    }
+   
    /*Connect*/
-
    res=ykpiv_connect(g_state, NULL);
    if(res!=0)
    {
-       printf("\n Connection Unsuccessful");
+       printf("Connection Failed, Error Code: %d\n", res);
    }
 
   /* PIN verification before ECDH  Exchange*/
-
     int tries=100;
-
     res=ykpiv_verify(g_state, "123456", &tries );
-
-    if(res==0)
+    if(res!0)
     {
-        printf("\nVerification");
+        printf("PIN Verification Failed, Error Code: %d\n", res);
     }
 
  const unsigned char test_key[] = {0x04,0xa9,0xee,0x8b,0x22,0xcb,0xa8,0xa0,0x9b,0x74,0xfd,0xe4,0x5a,0xe2,0xfe,0x6e,0xd6,0xf7,0xca,0xda,0xf1,0xf5,0x01,0xc5,0xf6,0x17,0x0d,0xf9,0x08,0x58,0x16,0xa8,0xd3,0x17,0xae,0xbc,0xe2,0x8d,0xfe,0x8c,0x58,0x97,0xab,0x63,0x74,0xf7,0x51,0xb8,0x09,0xec,0x42,0xa6,0xed,0x07,0x4b,0x54,0xc3,0x95,0xae,0x40,0x48,0x1c,0x42,0x08,0xdd};
@@ -51,16 +49,17 @@ void main()
 
      if(res==0)
      {
-         printf("\nECDH exchange successful\n");
+         printf("ECDH Exchange Successful\n");
      }
      else
      {
-         printf("\nECDH exchange failed\n %d", res);
+         printf("ECDH Exchange Failed, Error Code: %d\n", res);
      }
 
-
+   printf("ECDH Point: ");
     for (int v = 0; v < len; v++)
     {
         printf("%02x", secret[v]);
     }
+   printf("\n");
 }
