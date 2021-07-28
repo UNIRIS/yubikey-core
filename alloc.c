@@ -38,6 +38,7 @@ static void _test_free(void *data, void *p)
     free(p);
 }
 
+/* allocater structure */
 
 ykpiv_allocator test_allocator_cbs={
     .pfn_alloc=_test_alloc,
@@ -65,8 +66,6 @@ uint8_t *alloc_auth_cert()
 void main()
 {
    ykpiv_rc res;
-   
-   
 
    const ykpiv_allocator allocator;
    uint8_t *cert1, *cert2;
@@ -89,7 +88,7 @@ void main()
        printf("\n Connection Unsuccessful");
    }
 
-   /* Generating the key pair  require authentication, which is done by providing the management key. */
+   /* Authenticate */
     const char *mgm_key="7a5547f4b70dfe578c6681e98b07cc399782b1c84112c733";
     unsigned char key[24]={};
     size_t key_len=sizeof(key);
@@ -100,7 +99,7 @@ void main()
     res=ykpiv_authenticate(g_state, key);
 
 
-
+    /*allocate the data*/
     cert1=alloc_auth_cert();
     cert2=alloc_auth_cert();
 
