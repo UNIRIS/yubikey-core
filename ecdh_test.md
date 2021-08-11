@@ -1,10 +1,13 @@
-## Testing
+# Testing
+
+Open elixir terminal
 
 ```console
 iex
 {eph_pub, eph_pv} = :crypto.generate_key(:ecdh, :secp256r1)
 eph_pub |> IO.inspect(limit: :infinity) 
 ```
+
 Change the value of public key in test_key in ecdh.c with the above value of eph_pub.
 Replace the below given value of yubikey_pubkey with the public key of yubikey.
 
@@ -15,7 +18,8 @@ ecdh=:crypto.compute_key(:ecdh, yubikey, eph_pv, :secp256r1)
 Base.encode16(ecdh)
 ```
 
-Recompile ecdh.c in a new terminal and compare the results
+Recompile ecdh.c in a new terminal and compare the results:
+
 ```console
 gcc ecdh.c -lcrypto -lykpiv -o ecdh
 ./ecdh
