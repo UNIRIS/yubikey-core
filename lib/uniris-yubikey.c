@@ -6,7 +6,7 @@ static ykpiv_state *g_state;
 
 void initializeYK()
 {
-    /* Intialize */
+    /* Initialize */
     rc = ykpiv_init(&g_state, true);
     if (rc != 0)
     {
