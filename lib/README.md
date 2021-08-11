@@ -1,4 +1,4 @@
-# TPM Core
+# Yubikey Core
 
 ## Depends on [Yubico PIV Tool](https://github.com/Yubico/yubico-piv-tool)
 
