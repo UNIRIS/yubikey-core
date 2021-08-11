@@ -12,12 +12,12 @@ gcc uniris-yubikey.c -o uniris-yubikey -lykpiv -c
 
 ```console
 gcc driver.c -o driver uniris-yubikey -lykpiv
-sudo ./driver
+./driver
 ```
 
 ## One step driver compilation
 
 ```console
 gcc driver.c -o driver uniris-yubikey.c -lykpiv
-sudo ./driver
+./driver
 ```
