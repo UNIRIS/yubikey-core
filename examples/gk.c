@@ -43,7 +43,7 @@ int main()
    }
 	
 	/* Generating the key pair  require authentication, which is done by providing the management key. */
-    const char *mgm_key="7a5547f4b70dfe578c6681e98b07cc399782b1c84112c733";
+    const char *mgm_key="010203040506070801020304050607080102030405060708";
     unsigned char key[24]={};
     size_t key_len=sizeof(key);
     
