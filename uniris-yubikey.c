@@ -1,9 +1,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <ykpiv/ykpiv.h>
+#include "uniris-yubikey.h"
 
 ykpiv_rc rc;
 static ykpiv_state *g_state;
+static BYTE *ecc_public_key = NULL;
+static INT ecc_key_len;
 
 void initializeYK()
 {
@@ -22,7 +25,7 @@ void initializeYK()
     }
 }
 
-void generateKey()
+BYTE *generateKey(INT *publicKeySize)
 {
     const char *mgm_key = "010203040506070801020304050607080102030405060708";
     unsigned char key[24];
@@ -40,10 +43,6 @@ void generateKey()
     {
         printf("MGM Key Verification Failed, Error Code: %d\n", rc);
     }
-
-    /* ECC Public Key */
-    uint8_t *ecc_public_key = NULL;
-    size_t ecc_key_len;
 
     /* ECC Key Generation */
     rc = ykpiv_util_generate_key(g_state,
@@ -68,4 +67,6 @@ void generateKey()
         printf("%02x", ecc_public_key[i]);
     }
     printf("\n");
+    memcpy(publicKeySize, &ecc_key_len, sizeof(ecc_key_len));
+    return ecc_public_key;
 }
