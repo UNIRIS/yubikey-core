@@ -61,12 +61,7 @@ BYTE *generateKey(INT *publicKeySize)
     {
         printf("ECC Key Generation Failed, Error Code: %d\n", rc);
     }
-
-    for (int i = 0; i < ecc_key_len; i++)
-    {
-        printf("%02x", ecc_public_key[i]);
-    }
-    printf("\n");
+    
     memcpy(publicKeySize, &ecc_key_len, sizeof(ecc_key_len));
     return ecc_public_key;
 }
