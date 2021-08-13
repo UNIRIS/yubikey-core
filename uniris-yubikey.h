@@ -1,3 +1,5 @@
+typedef unsigned char BYTE;
+typedef unsigned long INT;
 
 void initializeYK();
-void generateKey();
+BYTE *generateKey(INT *publicKeySize);
