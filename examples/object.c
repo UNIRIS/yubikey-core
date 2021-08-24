@@ -37,7 +37,7 @@ void main()
     /* Authenticate with the MGM KEY */
     res = ykpiv_authenticate(g_state, key);
 
-    unsigned short indexes[MAX_KEYS] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24};
+    unsigned short indexes[MAX_KEYS] = {10001, 10002, 10003, 10004, 10005, 10006, 10007, 10008, 10009, 10010, 10011, 10012, 10013, 10014, 10015, 10016, 10017, 10018, 10019, 10020, 10021, 10022, 10023, 10024};
     unsigned char indexes_raw[2 * MAX_KEYS] = {0};
 
     for (int v = 0; v < MAX_KEYS; v++)
