@@ -1,22 +1,16 @@
+/* Stores 24 key indexes by converting each int index into 2 bytes raw format.
+ Uses Key History Object to store the raw indexes and the subsequently fetches
+ the raw saved indexes from it and recovers the indexes after conversion. */
+
 //Compile gcc object.c -lykpiv -o object
 
 #include <stdio.h>
 #include <string.h>
-#include <openssl/ec.h>
-#include <openssl/des.h>
-#include <openssl/pem.h>
-#include <openssl/pkcs12.h>
-#include <openssl/rand.h>
-#include <openssl/bn.h>
-#include <openssl/rand.h>
-#include <openssl/x509.h>
 #include <ykpiv/ykpiv.h>
-#include <ykpiv/ykpiv-config.h>
-#include <stdlib.h>
-#include <check.h>
-#include <time.h>
 
-int main()
+#define MAX_KEYS 24
+
+void main()
 {
     ykpiv_rc res;
     ykpiv_state *g_state;
@@ -33,53 +27,68 @@ int main()
         printf("\n Connection Unsuccessful");
     }
 
-    /* Generating the key pair  require authentication, which is done by providing the management key. */
+    /* Writing data to Key History Object requires MGM Key Authentication */
     const char *mgm_key = "010203040506070801020304050607080102030405060708";
     unsigned char key[24] = {};
     size_t key_len = sizeof(key);
 
     res = ykpiv_hex_decode(mgm_key, strlen(mgm_key), key, &key_len);
 
-    /* Authenticate the MGM KEY */
+    /* Authenticate with the MGM KEY */
     res = ykpiv_authenticate(g_state, key);
 
-    unsigned char indexs[] =
-        {
-            0x70, 0x59, 0x55, 0x89, 0x70, 0x59, 0x55, 0x89, 0x70, 0x59, 0x55, 0x89,
-            0x70, 0x59, 0x55, 0x89, 0x70, 0x59, 0x55, 0x89, 0x70, 0x59, 0x55, 0x89,
-            0x70, 0x59, 0x55, 0x89, 0x70, 0x59, 0x55, 0x89, 0x70, 0x59, 0x55, 0x89,
-            0x70, 0x59, 0x55, 0x89, 0x70, 0x59, 0x55, 0x89, 0x70, 0x59, 0x55, 0x89
+    unsigned short indexes[MAX_KEYS] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24};
+    unsigned char indexes_raw[2 * MAX_KEYS] = {0};
 
-        };
-    size_t len = sizeof(indexs);
+    for (int v = 0; v < MAX_KEYS; v++)
+    {
+        //big endian
+        indexes_raw[2 * v] = indexes[v] >> 8;
+        indexes_raw[2 * v + 1] = indexes[v];
+    }
 
-    res = ykpiv_save_object(g_state, YKPIV_OBJ_KEY_HISTORY, indexs, len);
+    res = ykpiv_save_object(g_state, YKPIV_OBJ_KEY_HISTORY, indexes_raw, sizeof(indexes_raw));
 
     if (res == 0)
     {
-        printf("Object saved");
+        printf("Object saved\n");
     }
     else
     {
-        printf("Error saving object %d", res);
+        printf("Error saving object %d\n", res);
     }
 
-    unsigned char indexes[50] = {0};
-    uint64_t index_length;
+    unsigned char indexes_yk[2 * MAX_KEYS] = {0};
+    uint64_t indexes_length;
 
     res = ykpiv_authenticate(g_state, key);
-    res = ykpiv_verify(g_state, "469901", NULL);
-    res = ykpiv_fetch_object(g_state, YKPIV_OBJ_KEY_HISTORY, indexes, &index_length);
-    for (int j = 0; j < index_length; j++)
-    {
-        printf("%02x", indexes[j]);
-    }
+    res = ykpiv_fetch_object(g_state, YKPIV_OBJ_KEY_HISTORY, indexes_yk, &indexes_length);
+
     if (res == 0)
     {
-        printf("\n\nFETCH SUCCESSFUL");
+        printf("Fetch Successful\nRaw Object: ");
     }
     else
     {
-        printf("\n\nFETCH UNSUCCESSFUL %d", res);
+        printf("Fetch Unsuccessful %d\n", res);
     }
+
+    for (int j = 0; j < indexes_length; j++)
+    {
+        printf("%02x", indexes_yk[j]);
+    }
+
+    unsigned short yk_indexes[MAX_KEYS];
+    for (int d = 0; d < indexes_length; d += 2)
+    {
+        yk_indexes[d / 2] = indexes_yk[d] << 8;
+        yk_indexes[d / 2] += indexes_yk[d + 1];
+    }
+
+    printf("\nRecovered: ");
+    for (int k = 0; k < MAX_KEYS; k++)
+    {
+        printf("%d ", yk_indexes[k]);
+    }
+    printf("\n");
 }
