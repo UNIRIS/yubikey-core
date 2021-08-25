@@ -34,18 +34,6 @@ unsigned int key_certificates[] = {0x5fc10d, 0x5fc10e, 0x5fc10f, 0x5fc110,
                                    0x5fc119, 0x5fc11a, 0x5fc11b, 0x5fc11c,
                                    0x5fc11d, 0x5fc11e, 0x5fc11f, 0x5fc120};
 
-#define MAX_LENGTH 1024
-
-void print_certificate(X509 *cert)
-{
-    char subj[MAX_LENGTH + 1];
-    char issuer[MAX_LENGTH + 1];
-    X509_NAME_oneline(X509_get_subject_name(cert), subj, MAX_LENGTH);
-    X509_NAME_oneline(X509_get_issuer_name(cert), issuer, MAX_LENGTH);
-    printf("certificate: %s\n", subj);
-    printf("\tissuer: %s\n\n", issuer);
-}
-
 void main()
 {
     ykpiv_rc res;
@@ -92,10 +80,10 @@ void main()
                                       NULL,
                                       &point,
                                       &point_len);
-        printf("%d : ", i);
-        for (int i = 0; i < point_len; i++)
+        printf("Saved %d : ", i+1);
+        for (int j = 0; j < point_len; j++)
         {
-            printf("%02x", point[i]);
+            printf("%02x", point[j]);
         }
         printf("\n");
 
@@ -125,7 +113,14 @@ void main()
         {
             printf("Error Parsing Certificate\n");
         }
-        print_certificate(cert);
+
+        struct asn1_string_st *mykey = X509_get0_pubkey_bitstr(cert);
+        printf("Retrieved %d : ", i+1);
+        for (int k = 0; k < mykey->length; k++)
+        {
+            printf("%02x", mykey->data[k]);
+        }
+        printf("\n\n");
         X509_free(cert);
     }
 }
