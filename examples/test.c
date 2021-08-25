@@ -1,13 +1,6 @@
-/*** KEY GENERATION
-Generating a key pair will have the public key as an output (action "generate"). The public key will be used to either
-generate a self signed certificate (action "selfsign") or a certificate request (action "request-certificate"). The
-resulting certificate should then be imported into the same slot (action "import-certificate").
-
-yubico-piv-tool -a generate -s <slot> -k [ -A <key algorithm> -o <public key file> ]
-
-COMPILE : gcc gk.c -lykpiv -o gk
-
- **/
+/*
+COMPILE : gcc test.c -lykpiv -lcrypto -o test
+*/
 
 #include <stdio.h>
 #include <string.h>
@@ -25,6 +18,10 @@ COMPILE : gcc gk.c -lykpiv -o gk
 #include <check.h>
 #include <time.h>
 
+#include <openssl/x509.h>
+#include <openssl/x509v3.h>
+#include <openssl/bio.h>
+
 unsigned char key_slots[] = {0x82, 0x83, 0x84, 0x85,
                              0x86, 0x87, 0x88, 0x89,
                              0x8a, 0x8b, 0x8c, 0x8d,
@@ -36,6 +33,19 @@ unsigned int key_certificates[] = {0x5fc10d, 0x5fc10e, 0x5fc10f, 0x5fc110,
                                    0x5fc115, 0x5fc116, 0x5fc117, 0x5fc118,
                                    0x5fc119, 0x5fc11a, 0x5fc11b, 0x5fc11c,
                                    0x5fc11d, 0x5fc11e, 0x5fc11f, 0x5fc120};
+
+#define MAX_LENGTH 1024
+
+void print_certificate(X509 *cert)
+{
+    char subj[MAX_LENGTH + 1];
+    char issuer[MAX_LENGTH + 1];
+    X509_NAME_oneline(X509_get_subject_name(cert), subj, MAX_LENGTH);
+    X509_NAME_oneline(X509_get_issuer_name(cert), issuer, MAX_LENGTH);
+    printf("certificate: %s\n", subj);
+    printf("\tissuer: %s\n\n", issuer);
+}
+
 void main()
 {
     ykpiv_rc res;
@@ -104,12 +114,18 @@ void main()
         {
             printf("Error saving object %d\n", res);
         }
-        /*
-        printf("\n\nCertificate\n");
-        for (int i = 0; i < attest_len; i++)
+
+        unsigned char certi_yk[2048] = {0};
+        size_t yk_attest_len = sizeof(certi_yk);
+        ykpiv_fetch_object(g_state, key_certificates[i], certi_yk, &yk_attest_len);
+
+        const unsigned char *data = certi_yk;
+        X509 *cert = d2i_X509(NULL, &data, yk_attest_len);
+        if (!cert)
         {
-            printf("%02x", attest[i]);
+            printf("Error Parsing Certificate\n");
         }
-        */
+        print_certificate(cert);
+        X509_free(cert);
     }
 }
