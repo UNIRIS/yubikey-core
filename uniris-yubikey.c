@@ -8,6 +8,19 @@ static ykpiv_state *g_state;
 static BYTE *ecc_public_key = NULL;
 static INT ecc_key_len;
 
+unsigned char key_slots[] = {0x82, 0x83, 0x84, 0x85,
+                             0x86, 0x87, 0x88, 0x89,
+                             0x8a, 0x8b, 0x8c, 0x8d,
+                             0x8e, 0x8f, 0x90, 0x91,
+                             0x92, 0x93, 0x94, 0x95};
+
+unsigned int key_certificates[] = {0x5fc10d, 0x5fc10e, 0x5fc10f, 0x5fc110,
+                                   0x5fc111, 0x5fc112, 0x5fc113, 0x5fc114,
+                                   0x5fc115, 0x5fc116, 0x5fc117, 0x5fc118,
+                                   0x5fc119, 0x5fc11a, 0x5fc11b, 0x5fc11c,
+                                   0x5fc11d, 0x5fc11e, 0x5fc11f, 0x5fc120};
+
+
 void initializeYK()
 {
     /* Initialize */
