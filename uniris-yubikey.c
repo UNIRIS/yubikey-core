@@ -8,7 +8,7 @@ ykpiv_rc rc;
 static ykpiv_state *g_state;
 static BYTE ecc_public_key[65] = {0};
 static INT ecc_key_len;
-static INT ykIndex = 0;
+
 unsigned char key_slots[] = {0x82, 0x83, 0x84, 0x85,
                              0x86, 0x87, 0x88, 0x89,
                              0x8a, 0x8b, 0x8c, 0x8d,
