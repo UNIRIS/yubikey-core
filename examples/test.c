@@ -65,7 +65,7 @@ void main()
     uint8_t *point = NULL;
     size_t point_len;
 
-    /** Key Generation */
+    /* Key Generation */
 
     for (int i = 0; i < sizeof(key_slots); i++)
     {
@@ -87,7 +87,7 @@ void main()
         }
         printf("\n");
 
-        /******CERTIFICATE GENERATION****/
+        /* CERTIFICATE GENERATION */
 
         unsigned char attest[2048] = {0};
         size_t attest_len = sizeof(attest);
