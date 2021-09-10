@@ -5,19 +5,19 @@
 ## Compiling the library
 
 ```console
-gcc uniris-yubikey.c -o uniris-yubikey -lykpiv -c
+gcc uniris-yubikey.c -o uniris-yubikey -lykpiv -lcrypto -c
 ```
 
 ## Testing with a driver
 
 ```console
-gcc driver.c -o driver uniris-yubikey -lykpiv
+gcc driver.c -o driver uniris-yubikey -lykpiv -lcrypto
 ./driver
 ```
 
 ## One step driver compilation
 
 ```console
-gcc driver.c -o driver uniris-yubikey.c -lykpiv
+gcc driver.c -o driver uniris-yubikey.c -lykpiv -lcrypto
 ./driver
 ```

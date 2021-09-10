@@ -1,5 +1,7 @@
 typedef unsigned char BYTE;
-typedef unsigned long INT;
+typedef unsigned short INT;
 
 void initializeYK();
-BYTE *generateKey(INT *publicKeySize);
+
+BYTE *getCurrentKey(INT *publicKeySize);
+BYTE *getNextKey(INT *publicKeySize);
