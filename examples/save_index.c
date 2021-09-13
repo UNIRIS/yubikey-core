@@ -37,10 +37,10 @@ void main()
     /* Authenticate with the MGM KEY */
     res = ykpiv_authenticate(g_state, key);
 
-    unsigned short index = 0xFFFF;
+    unsigned short index = 10000;
     unsigned char index_raw[3] = {0};
 
-    index_raw[0]= 11;
+    index_raw[0]= 0;
         //big endian
         index_raw[1] = index >> 8;
         index_raw[2] = index;

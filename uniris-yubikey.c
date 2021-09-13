@@ -113,7 +113,25 @@ BYTE getYKIndex()
     }
     return index_yk[0];
 }
-void getKey(INT localIndex)
+
+INT getArchEthicIndex()
+{
+    //Check why extra 2 bytes are needed?
+    unsigned char index_yk[5] = {0};
+    size_t index_length = sizeof(index_yk);
+    rc = ykpiv_fetch_object(g_state, YKPIV_OBJ_KEY_HISTORY, index_yk, &index_length);
+    if (rc != 0)
+    {
+        printf("Fetch Unsuccessful, Error Code: %d\n", rc);
+    }
+    INT archEthicIndex;
+
+    archEthicIndex = index_yk[1] << 8;
+    archEthicIndex += index_yk[2];
+    return archEthicIndex;
+}
+
+void fetchKey(INT localIndex)
 {
     unsigned char certi_yk[2048] = {0};
     size_t yk_attest_len = sizeof(certi_yk);
@@ -136,14 +154,28 @@ void getKey(INT localIndex)
 BYTE *getCurrentKey(INT *publicKeySize)
 {
     INT previous_key_index = (getYKIndex() - 1 + 20) % 20;
-    getKey(previous_key_index);
+    fetchKey(previous_key_index);
     memcpy(publicKeySize, &ecc_key_len, sizeof(ecc_key_len));
     return ecc_public_key;
 }
 
 BYTE *getNextKey(INT *publicKeySize)
 {
-    getKey(getYKIndex());
+    fetchKey(getYKIndex());
+    memcpy(publicKeySize, &ecc_key_len, sizeof(ecc_key_len));
+    return ecc_public_key;
+}
+
+BYTE *getPublicKey(INT keyIndex, INT *publicKeySize)
+{
+    INT public_key_index = (getYKIndex() - 1 + 20) % 20;
+
+    INT offset = getArchEthicIndex() - keyIndex;
+    if (offset > 19 || offset < 0)
+        return NULL;
+
+    INT slotPosition = (getYKIndex() - offset + 20) % 20;
+    fetchKey(slotPosition);
     memcpy(publicKeySize, &ecc_key_len, sizeof(ecc_key_len));
     return ecc_public_key;
 }

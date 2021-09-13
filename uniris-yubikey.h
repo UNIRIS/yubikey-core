@@ -5,3 +5,4 @@ void initializeYK();
 
 BYTE *getCurrentKey(INT *publicKeySize);
 BYTE *getNextKey(INT *publicKeySize);
+BYTE *getPublicKey(INT keyIndex, INT *publicKeySize);
