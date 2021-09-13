@@ -6,6 +6,10 @@
 
 ykpiv_rc rc;
 static ykpiv_state *g_state;
+
+static BYTE rsa_root_key[300] = {0};
+static INT rsa_key_len;
+
 static BYTE ecc_public_key[65] = {0};
 static INT ecc_key_len;
 
@@ -217,12 +221,8 @@ BYTE *getRootKey(INT *publicKeySize)
     size_t pblen = 0;
     ykpiv_util_read_cert(g_state, 0xf9, &pb, &pblen);
 
-    for (int v = 0; v < pblen; v++)
-    {
-        printf("%02x", pb[v]);
-    }
-    printf("\n\n");
-    X509 *cert = d2i_X509(NULL, &pb, pblen);
+    const BYTE *data = pb;
+    X509 *cert = d2i_X509(NULL, &data, pblen);
     if (!cert)
     {
         printf("Error Parsing Certificate\n");
@@ -230,10 +230,10 @@ BYTE *getRootKey(INT *publicKeySize)
 
     struct asn1_string_st *mykey = X509_get0_pubkey_bitstr(cert);
 
-    memcpy(ecc_public_key, mykey->data, mykey->length);
-    memcpy(&ecc_key_len, &mykey->length, sizeof(mykey->length));
+    memcpy(rsa_root_key, mykey->data, mykey->length);
+    memcpy(&rsa_key_len, &mykey->length, sizeof(mykey->length));
     X509_free(cert);
 
-    memcpy(publicKeySize, &ecc_key_len, sizeof(ecc_key_len));
-    return ecc_public_key;
+    memcpy(publicKeySize, &rsa_key_len, sizeof(rsa_key_len));
+    return rsa_root_key;
 }
