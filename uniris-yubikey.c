@@ -58,49 +58,68 @@ void authenticateYK()
     }
 }
 
-/*
-BYTE *generateKey(INT *publicKeySize)
+void generateKey(BYTE ykIndex)
 {
-    const char *mgm_key = "010203040506070801020304050607080102030405060708";
-    unsigned char key[24];
-    size_t key_len = sizeof(key);
+    /* ECC Public Point **/
+    uint8_t *point = NULL;
+    size_t point_len;
 
-    rc = ykpiv_hex_decode(mgm_key, strlen(mgm_key), key, &key_len);
-    if(rc!=0)
-    {
-        printf("Hex decode failed, Error Code: %d\n", rc);
-    }
+    /* Key Generation */
 
-    // Authenticate with the MGM Key
-    rc = ykpiv_authenticate(g_state, key);
-    if(rc!=0)
-    {
-        printf("MGM Key Verification Failed, Error Code: %d\n", rc);
-    }
-
-    // ECC Key Generation
     rc = ykpiv_util_generate_key(g_state,
-                                  YKPIV_KEY_AUTHENTICATION,
-                                  YKPIV_ALGO_ECCP256,
-                                  YKPIV_PINPOLICY_NEVER,
-                                  YKPIV_TOUCHPOLICY_NEVER,
-                                  NULL,
-                                  NULL,
-                                  NULL,
-                                  NULL,
-                                  &ecc_public_key,
-                                  &ecc_key_len);
+                                 key_slots[ykIndex],
+                                 YKPIV_ALGO_ECCP256,
+                                 YKPIV_PINPOLICY_NEVER,
+                                 YKPIV_TOUCHPOLICY_NEVER,
+                                 NULL,
+                                 NULL,
+                                 NULL,
+                                 NULL,
+                                 &point,
+                                 &point_len);
 
-    if(rc!=0)
+    if (rc != 0)
     {
-        printf("ECC Key Generation Failed, Error Code: %d\n", rc);
+        printf("Error generating key, Error Code: %d\n", rc);
     }
-    
-    memcpy(publicKeySize, &ecc_key_len, sizeof(ecc_key_len));
-    return ecc_public_key;
+    printf("Saved %d : ", ykIndex);
+    for (int j = 0; j < point_len; j++)
+    {
+        printf("%02x", point[j]);
+    }
+    printf("\n");
 }
-*/
+void generateCertificate(BYTE ykIndex)
+{
+    /* Certificate Generation */
 
+    unsigned char attest[2048] = {0};
+    size_t attest_len = sizeof(attest);
+    rc = ykpiv_attest(g_state, key_slots[ykIndex], attest, &attest_len);
+
+    rc = ykpiv_save_object(g_state, key_certificates[ykIndex], attest, attest_len);
+    if (rc != 0)
+    {
+        printf("Error saving certificate, Error Code: %d\n", rc);
+    }
+}
+void saveIndex(BYTE ykIndex, INT archEthicIndex)
+{
+    unsigned char index_raw[3] = {0};
+
+    index_raw[0] = ykIndex;
+    //big endian
+    index_raw[1] = archEthicIndex >> 8;
+    index_raw[2] = archEthicIndex;
+
+    rc = ykpiv_save_object(g_state, YKPIV_OBJ_KEY_HISTORY, index_raw, sizeof(index_raw));
+
+    if (rc != 0)
+    {
+        printf("Error saving Index, Error Code: %d\n", rc);
+    }
+    printf("YK Index: %d, ArchEthic Index: %d\n", ykIndex, archEthicIndex);
+}
 BYTE getYKIndex()
 {
     //Check why extra 2 bytes are needed?
@@ -168,14 +187,53 @@ BYTE *getNextKey(INT *publicKeySize)
 
 BYTE *getPublicKey(INT keyIndex, INT *publicKeySize)
 {
-    INT public_key_index = (getYKIndex() - 1 + 20) % 20;
-
     INT offset = getArchEthicIndex() - keyIndex;
     if (offset > 19 || offset < 0)
         return NULL;
 
     INT slotPosition = (getYKIndex() - offset + 20) % 20;
     fetchKey(slotPosition);
+    memcpy(publicKeySize, &ecc_key_len, sizeof(ecc_key_len));
+    return ecc_public_key;
+}
+
+bool incrementIndex()
+{
+    BYTE newYKIndex = (getYKIndex() + 1) % 20;
+    INT newArchEthicIndex = getArchEthicIndex() + 1;
+    authenticateYK();
+    generateKey(newYKIndex);
+    generateCertificate(newYKIndex);
+    saveIndex(newYKIndex, newArchEthicIndex);
+    if (getYKIndex() == newYKIndex && getArchEthicIndex() == newArchEthicIndex)
+        return true;
+    else
+        return false;
+}
+
+BYTE *getRootKey(INT *publicKeySize)
+{
+    unsigned char *pb = 0;
+    size_t pblen = 0;
+    ykpiv_util_read_cert(g_state, 0xf9, &pb, &pblen);
+
+    for (int v = 0; v < pblen; v++)
+    {
+        printf("%02x", pb[v]);
+    }
+    printf("\n\n");
+    X509 *cert = d2i_X509(NULL, &pb, pblen);
+    if (!cert)
+    {
+        printf("Error Parsing Certificate\n");
+    }
+
+    struct asn1_string_st *mykey = X509_get0_pubkey_bitstr(cert);
+
+    memcpy(ecc_public_key, mykey->data, mykey->length);
+    memcpy(&ecc_key_len, &mykey->length, sizeof(mykey->length));
+    X509_free(cert);
+
     memcpy(publicKeySize, &ecc_key_len, sizeof(ecc_key_len));
     return ecc_public_key;
 }

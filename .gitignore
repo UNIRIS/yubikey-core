@@ -3,3 +3,5 @@ examples/save_index
 examples/test
 driver
 ref.txt
+examples/read_keys.c
+examples/read_keys
