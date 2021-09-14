@@ -4,6 +4,8 @@
 #include <openssl/x509.h>
 #include "uniris-yubikey.h"
 
+#define PRIME_LEN 32
+
 ykpiv_rc rc;
 static ykpiv_state *g_state;
 
@@ -12,6 +14,9 @@ static INT rsa_key_len;
 
 static BYTE ecc_public_key[65] = {0};
 static INT ecc_key_len;
+
+static BYTE sigEccASN[2 + 2 + PRIME_LEN + 2 + PRIME_LEN + 2] = {0};
+static size_t asnSignSize = sizeof(sigEccASN);
 
 unsigned char key_slots[] = {0x82, 0x83, 0x84, 0x85,
                              0x86, 0x87, 0x88, 0x89,
@@ -189,9 +194,9 @@ BYTE *getNextKey(INT *publicKeySize)
     return ecc_public_key;
 }
 
-BYTE *getPublicKey(INT keyIndex, INT *publicKeySize)
+BYTE *getPublicKey(INT archEthicIndex, INT *publicKeySize)
 {
-    INT offset = getArchEthicIndex() - keyIndex;
+    INT offset = getArchEthicIndex() - archEthicIndex;
     if (offset > 19 || offset < 0)
         return NULL;
 
@@ -236,4 +241,41 @@ BYTE *getRootKey(INT *publicKeySize)
 
     memcpy(publicKeySize, &rsa_key_len, sizeof(rsa_key_len));
     return rsa_root_key;
+}
+
+void signECDSA(BYTE *hashToSign, INT localIndex)
+{
+    rc = ykpiv_verify(g_state, "123456", NULL);
+    if (rc != 0)
+    {
+        printf("Pin Authentication Failed, Error Code: %d\n", rc);
+    }
+
+    /* Sign Data */
+    rc = ykpiv_sign_data(g_state, hashToSign, PRIME_LEN, sigEccASN, &asnSignSize, YKPIV_ALGO_ECCP256, key_slots[localIndex]);
+
+    if (rc != 0)
+    {
+        printf("ECDSA Signing Failed, Error Code: %d\n", rc);
+    }
+}
+
+BYTE *signCurrentKey(BYTE *hashToSign, INT *eccSignSize)
+{
+    INT currentKeyIndex = (getYKIndex() - 1 + 20) % 20;
+    signECDSA(hashToSign, currentKeyIndex);
+    memcpy(eccSignSize, &asnSignSize, sizeof(asnSignSize));
+    return sigEccASN;
+}
+
+BYTE *signPastKey(INT archEthicIndex, BYTE *hashToSign, INT *eccSignSize)
+{
+    INT offset = getArchEthicIndex() - archEthicIndex;
+    if (offset > 19 || offset < 0)
+        return NULL;
+
+    INT slotPosition = (getYKIndex() - offset + 20) % 20;
+    signECDSA(hashToSign, slotPosition);
+    memcpy(eccSignSize, &asnSignSize, sizeof(asnSignSize));
+    return sigEccASN;
 }

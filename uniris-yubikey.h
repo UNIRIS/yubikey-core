@@ -4,10 +4,12 @@ typedef unsigned char BYTE;
 typedef unsigned short INT;
 
 void initializeYK();
+bool incrementIndex();
 
+BYTE *getRootKey(INT *publicKeySize);
 BYTE *getCurrentKey(INT *publicKeySize);
 BYTE *getNextKey(INT *publicKeySize);
-BYTE *getPublicKey(INT keyIndex, INT *publicKeySize);
-BYTE *getRootKey(INT *publicKeySize);
+BYTE *getPublicKey(INT archEthicIndex, INT *publicKeySize);
 
-bool incrementIndex();
+BYTE *signCurrentKey(BYTE *hashToSign, INT *eccSignSize);
+BYTE *signPastKey(INT archEthicIndex, BYTE *hashToSign, INT *eccSignSize);
