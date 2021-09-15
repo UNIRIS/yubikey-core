@@ -18,11 +18,14 @@ static INT ecc_key_len;
 static BYTE sigEccASN[2 + 2 + PRIME_LEN + 2 + PRIME_LEN + 2] = {0};
 static size_t asnSignSize = sizeof(sigEccASN);
 
-unsigned char key_slots[] = {0x82, 0x83, 0x84, 0x85,
-                             0x86, 0x87, 0x88, 0x89,
-                             0x8a, 0x8b, 0x8c, 0x8d,
-                             0x8e, 0x8f, 0x90, 0x91,
-                             0x92, 0x93, 0x94, 0x95};
+static BYTE ecdhPoint[PRIME_LEN] = {0};
+static size_t ecdhPointLen = PRIME_LEN;
+
+BYTE key_slots[] = {0x82, 0x83, 0x84, 0x85,
+                    0x86, 0x87, 0x88, 0x89,
+                    0x8a, 0x8b, 0x8c, 0x8d,
+                    0x8e, 0x8f, 0x90, 0x91,
+                    0x92, 0x93, 0x94, 0x95};
 
 unsigned int key_certificates[] = {0x5fc10d, 0x5fc10e, 0x5fc10f, 0x5fc110,
                                    0x5fc111, 0x5fc112, 0x5fc113, 0x5fc114,
@@ -50,7 +53,7 @@ void initializeYK()
 void authenticateYK()
 {
     const char *mgm_key = "010203040506070801020304050607080102030405060708";
-    unsigned char key[24];
+    BYTE key[24];
     size_t key_len = sizeof(key);
 
     rc = ykpiv_hex_decode(mgm_key, strlen(mgm_key), key, &key_len);
@@ -67,6 +70,14 @@ void authenticateYK()
     }
 }
 
+void verifyPinYK()
+{
+    rc = ykpiv_verify(g_state, "123456", NULL);
+    if (rc != 0)
+    {
+        printf("Pin Authentication Failed, Error Code: %d\n", rc);
+    }
+}
 void generateKey(BYTE ykIndex)
 {
     /* ECC Public Point **/
@@ -102,7 +113,7 @@ void generateCertificate(BYTE ykIndex)
 {
     /* Certificate Generation */
 
-    unsigned char attest[2048] = {0};
+    BYTE attest[2048] = {0};
     size_t attest_len = sizeof(attest);
     rc = ykpiv_attest(g_state, key_slots[ykIndex], attest, &attest_len);
 
@@ -114,7 +125,7 @@ void generateCertificate(BYTE ykIndex)
 }
 void saveIndex(BYTE ykIndex, INT archEthicIndex)
 {
-    unsigned char index_raw[3] = {0};
+    BYTE index_raw[3] = {0};
 
     index_raw[0] = ykIndex;
     //big endian
@@ -132,7 +143,7 @@ void saveIndex(BYTE ykIndex, INT archEthicIndex)
 BYTE getYKIndex()
 {
     //Check why extra 2 bytes are needed?
-    unsigned char index_yk[5] = {0};
+    BYTE index_yk[5] = {0};
     size_t index_length = sizeof(index_yk);
     rc = ykpiv_fetch_object(g_state, YKPIV_OBJ_KEY_HISTORY, index_yk, &index_length);
     if (rc != 0)
@@ -145,7 +156,7 @@ BYTE getYKIndex()
 INT getArchEthicIndex()
 {
     //Check why extra 2 bytes are needed?
-    unsigned char index_yk[5] = {0};
+    BYTE index_yk[5] = {0};
     size_t index_length = sizeof(index_yk);
     rc = ykpiv_fetch_object(g_state, YKPIV_OBJ_KEY_HISTORY, index_yk, &index_length);
     if (rc != 0)
@@ -159,13 +170,13 @@ INT getArchEthicIndex()
     return archEthicIndex;
 }
 
-void fetchKey(INT localIndex)
+void fetchKey(BYTE ykIndex)
 {
-    unsigned char certi_yk[2048] = {0};
+    BYTE certi_yk[2048] = {0};
     size_t yk_attest_len = sizeof(certi_yk);
-    ykpiv_fetch_object(g_state, key_certificates[localIndex], certi_yk, &yk_attest_len);
+    ykpiv_fetch_object(g_state, key_certificates[ykIndex], certi_yk, &yk_attest_len);
 
-    const unsigned char *data = certi_yk;
+    const BYTE *data = certi_yk;
     X509 *cert = d2i_X509(NULL, &data, yk_attest_len);
     if (!cert)
     {
@@ -222,7 +233,7 @@ bool incrementIndex()
 
 BYTE *getRootKey(INT *publicKeySize)
 {
-    unsigned char *pb = 0;
+    BYTE *pb = 0;
     size_t pblen = 0;
     ykpiv_util_read_cert(g_state, 0xf9, &pb, &pblen);
 
@@ -243,16 +254,10 @@ BYTE *getRootKey(INT *publicKeySize)
     return rsa_root_key;
 }
 
-void signECDSA(BYTE *hashToSign, INT localIndex)
+void signECDSA(BYTE *hashToSign, BYTE ykIndex)
 {
-    rc = ykpiv_verify(g_state, "123456", NULL);
-    if (rc != 0)
-    {
-        printf("Pin Authentication Failed, Error Code: %d\n", rc);
-    }
-
     /* Sign Data */
-    rc = ykpiv_sign_data(g_state, hashToSign, PRIME_LEN, sigEccASN, &asnSignSize, YKPIV_ALGO_ECCP256, key_slots[localIndex]);
+    rc = ykpiv_sign_data(g_state, hashToSign, PRIME_LEN, sigEccASN, &asnSignSize, YKPIV_ALGO_ECCP256, key_slots[ykIndex]);
 
     if (rc != 0)
     {
@@ -263,6 +268,7 @@ void signECDSA(BYTE *hashToSign, INT localIndex)
 BYTE *signCurrentKey(BYTE *hashToSign, INT *eccSignSize)
 {
     INT currentKeyIndex = (getYKIndex() - 1 + 20) % 20;
+    verifyPinYK();
     signECDSA(hashToSign, currentKeyIndex);
     memcpy(eccSignSize, &asnSignSize, sizeof(asnSignSize));
     return sigEccASN;
@@ -275,7 +281,40 @@ BYTE *signPastKey(INT archEthicIndex, BYTE *hashToSign, INT *eccSignSize)
         return NULL;
 
     INT slotPosition = (getYKIndex() - offset + 20) % 20;
+    verifyPinYK();
     signECDSA(hashToSign, slotPosition);
     memcpy(eccSignSize, &asnSignSize, sizeof(asnSignSize));
     return sigEccASN;
+}
+
+void getECDHPoint(BYTE ykIndex, BYTE *euphemeralKey)
+{
+    rc = ykpiv_decipher_data(g_state, euphemeralKey, 65, ecdhPoint, &ecdhPointLen, YKPIV_ALGO_ECCP256, key_slots[ykIndex]);
+
+    if (rc != 0)
+    {
+        printf("ECDH Exchange Failed, Error Code: %d\n", rc);
+    }
+}
+
+BYTE *ecdhCurrentKey(BYTE *euphemeralKey, INT *eccPointSize)
+{
+    INT currentKeyIndex = (getYKIndex() - 1 + 20) % 20;
+    verifyPinYK();
+    getECDHPoint(currentKeyIndex, euphemeralKey);
+    memcpy(eccPointSize, &ecdhPointLen, sizeof(ecdhPointLen));
+    return ecdhPoint;
+}
+
+BYTE *ecdhPastKey(INT archEthicIndex, BYTE *euphemeralKey, INT *eccPointSize)
+{
+    INT offset = getArchEthicIndex() - archEthicIndex;
+    if (offset > 19 || offset < 0)
+        return NULL;
+
+    INT slotPosition = (getYKIndex() - offset + 20) % 20;
+    verifyPinYK();
+    getECDHPoint(slotPosition, euphemeralKey);
+    memcpy(eccPointSize, &ecdhPointLen, sizeof(ecdhPointLen));
+    return ecdhPoint;
 }
