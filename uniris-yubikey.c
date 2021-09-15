@@ -21,6 +21,9 @@ static size_t asnSignSize = sizeof(sigEccASN);
 static BYTE ecdhPoint[PRIME_LEN] = {0};
 static size_t ecdhPointLen = PRIME_LEN;
 
+static BYTE ykCertificate[2048] = {0};
+static size_t ykCertificateLen = 2048;
+
 BYTE key_slots[] = {0x82, 0x83, 0x84, 0x85,
                     0x86, 0x87, 0x88, 0x89,
                     0x8a, 0x8b, 0x8c, 0x8d,
@@ -108,6 +111,7 @@ void generateKey(BYTE ykIndex)
         printf("%02x", point[j]);
     }
     printf("\n");
+    ykpiv_util_free(g_state, point);
 }
 void generateCertificate(BYTE ykIndex)
 {
@@ -251,6 +255,7 @@ BYTE *getRootKey(INT *publicKeySize)
     X509_free(cert);
 
     memcpy(publicKeySize, &rsa_key_len, sizeof(rsa_key_len));
+    ykpiv_util_free(g_state, pb);
     return rsa_root_key;
 }
 
@@ -317,4 +322,42 @@ BYTE *ecdhPastKey(INT archEthicIndex, BYTE *euphemeralKey, INT *eccPointSize)
     getECDHPoint(slotPosition, euphemeralKey);
     memcpy(eccPointSize, &ecdhPointLen, sizeof(ecdhPointLen));
     return ecdhPoint;
+}
+
+BYTE *getRootCertificate(INT *certificateSize)
+{
+    BYTE *pb = 0;
+    ykpiv_util_read_cert(g_state, 0xf9, &pb, &ykCertificateLen);
+
+    memcpy(ykCertificate, pb, ykCertificateLen);
+    memcpy(certificateSize, &ykCertificateLen, sizeof(ykCertificateLen));
+    ykpiv_util_free(g_state, pb);
+    return ykCertificate;
+}
+
+BYTE *getCurrentCertificate(INT *certificateSize)
+{
+    INT currentKeyIndex = (getYKIndex() - 1 + 20) % 20;
+    ykpiv_fetch_object(g_state, key_certificates[currentKeyIndex], ykCertificate, &ykCertificateLen);
+    memcpy(certificateSize, &ykCertificateLen, sizeof(ykCertificateLen));
+    return ykCertificate;
+}
+
+BYTE *getNextCertificate(INT *certificateSize)
+{
+    ykpiv_fetch_object(g_state, key_certificates[getYKIndex()], ykCertificate, &ykCertificateLen);
+    memcpy(certificateSize, &ykCertificateLen, sizeof(ykCertificateLen));
+    return ykCertificate;
+}
+
+BYTE *getPastCertificate(INT archEthicIndex, INT *certificateSize)
+{
+    INT offset = getArchEthicIndex() - archEthicIndex;
+    if (offset > 19 || offset < 0)
+        return NULL;
+
+    INT slotPosition = (getYKIndex() - offset + 20) % 20;
+    ykpiv_fetch_object(g_state, key_certificates[slotPosition], ykCertificate, &ykCertificateLen);
+    memcpy(certificateSize, &ykCertificateLen, sizeof(ykCertificateLen));
+    return ykCertificate;
 }

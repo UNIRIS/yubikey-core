@@ -39,4 +39,13 @@ void main()
         printf("%02x", ecdhPoint[v]);
     }
     printf("\n");
+
+    INT certificateSize = 0;
+    BYTE *certificate = getRootCertificate(&certificateSize);
+    printf("\nRoot Certificate = \n");
+    for (int v = 0; v < certificateSize; v++)
+    {
+        printf("%02x", certificate[v]);
+    }
+    printf("\n");
 }
