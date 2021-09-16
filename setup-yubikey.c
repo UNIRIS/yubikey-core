@@ -23,11 +23,11 @@ void main()
        Set ArchEthic's next_key Index to 1 */
     saveIndex(1, 1);
 
-    /* Generate Key+Certificate on slot 0(0x82) of Yubikey */
+    /* Generate Key+Certificate for slot 0 (0x82) of Yubikey */
     generateKey(0);
     generateCertificate(0);
 
-    /* Generate Key+Certificate on slot 1(0x83) of Yubikey */
+    /* Generate Key+Certificate for slot 1 (0x83) of Yubikey */
     generateKey(1);
     generateCertificate(1);
 }
