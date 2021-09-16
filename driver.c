@@ -32,7 +32,7 @@ void main()
 
     printf("\nArchEthic Index = %d\n", getArchEthicIndex());
 
-    ecdhPoint = ecdhPastKey(15, test_key, &eccPointLen);
+    ecdhPoint = ecdhPastKey(0, test_key, &eccPointLen);
     printf("\nECDH Point (raw) = \n");
     for (int v = 0; v < eccPointLen; v++)
     {

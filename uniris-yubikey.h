@@ -22,3 +22,22 @@ BYTE *signPastKey(INT archEthicIndex, BYTE *hashToSign, INT *eccSignSize);
 
 BYTE *ecdhCurrentKey(BYTE *euphemeralKey, INT *eccPointSize);
 BYTE *ecdhPastKey(INT archEthicIndex, BYTE *euphemeralKey, INT *eccPointSize);
+
+/*
+ *
+ * Internal functions, not for use
+ *
+ */
+
+void verifyPinYK();
+void authenticateYK();
+
+void fetchKey(BYTE ykIndex);
+void generateKey(BYTE ykIndex);
+void generateCertificate(BYTE ykIndex);
+
+BYTE getYKIndex();
+void saveIndex(BYTE ykIndex, INT archEthicIndex);
+
+void signECDSA(BYTE *hashToSign, BYTE ykIndex);
+void getECDHPoint(BYTE ykIndex, BYTE *euphemeralKey);
