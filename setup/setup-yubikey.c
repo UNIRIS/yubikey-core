@@ -4,13 +4,13 @@
     This program sets/resets your (new) Yubikey. This will generate a new key + certificate on key_slot 0
     and set it as current key with ArchEthic Index 0 and will also generate a new key + certificate on
     key_slot 1 as next key with ArchEthic Index 1. Change the parameters accordingly for a customized
-    setup. Compile gcc setup-yubikey.c -lykpiv -o setup-yubikey
+    setup. Compile gcc setup/setup-yubikey.c -o setup-yubikey uniris-yubikey.c -lykpiv -lcrypto
 */
 
 #include <stdio.h>
 #include <string.h>
 #include <ykpiv/ykpiv.h>
-#include "uniris-yubikey.h"
+#include "../uniris-yubikey.h"
 
 /* Caution: Internal Function Usage */
 void main()

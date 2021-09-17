@@ -5,4 +5,5 @@ driver
 ref.txt
 examples/read_keys.c
 examples/read_keys
-setup/setup-yubikey
+setup-yubikey
+support
