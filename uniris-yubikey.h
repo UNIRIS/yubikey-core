@@ -10,7 +10,7 @@ bool incrementIndex();
 BYTE *getRootKey(INT *publicKeySize);
 BYTE *getCurrentKey(INT *publicKeySize);
 BYTE *getNextKey(INT *publicKeySize);
-BYTE *getPublicKey(INT archEthicIndex, INT *publicKeySize);
+BYTE *getPastKey(INT archEthicIndex, INT *publicKeySize);
 
 BYTE *getRootCertificate(INT *certificateSize);
 BYTE *getCurrentCertificate(INT *certificateSize);

@@ -1,3 +1,4 @@
+// Compile: gcc support.c -o support stdio_helpers.c uniris-yubikey.c -lykpiv -lcrypto
 #include <err.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,7 +15,7 @@ enum
     GET_ROOT_KEY = 4,
     GET_CURRENT_KEY = 5,
     GET_NEXT_KEY = 6,
-    GET_PUBLIC_KEY = 7,
+    GET_PAST_KEY = 7,
     GET_ROOT_CERTIFICATE = 8,
     GET_CURRENT_CERTIFICATE = 9,
     GET_NEXT_CERTIFICATE = 10,
@@ -141,7 +142,7 @@ void get_next_key(unsigned char *buf, int pos, int len)
     write_response(response, response_len);
 }
 
-void get_public_key(unsigned char *buf, int pos, int len)
+void get_past_key(unsigned char *buf, int pos, int len)
 {
     if (len < pos + 2)
     {
@@ -159,7 +160,7 @@ void get_public_key(unsigned char *buf, int pos, int len)
 
         BYTE *rawECCkey;
         INT publicKeySize = 0;
-        rawECCkey = getPublicKey(index_int, &publicKeySize);
+        rawECCkey = getPastKey(index_int, &publicKeySize);
         int response_len = 5 + publicKeySize;
         unsigned char response[response_len];
         for (int i = 0; i < 4; i++)
@@ -495,8 +496,8 @@ int main()
         case GET_NEXT_KEY:
             get_next_key(buf, pos, len);
             break;
-        case GET_PUBLIC_KEY:
-            get_public_key(buf, pos, len);
+        case GET_PAST_KEY:
+            get_past_key(buf, pos, len);
             break;
         case GET_ROOT_CERTIFICATE:
             get_root_certificate(buf, pos, len);

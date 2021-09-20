@@ -182,7 +182,8 @@ void saveIndex(BYTE ykIndex, INT archEthicIndex)
 }
 
 void signECDSA(BYTE *hashToSign, BYTE ykIndex)
-{
+{   
+    asnSignSize = 2 + 2 + PRIME_LEN + 2 + PRIME_LEN + 2;
     /* Sign Data */
     rc = ykpiv_sign_data(g_state, hashToSign, PRIME_LEN, sigEccASN, &asnSignSize, YKPIV_ALGO_ECCP256, key_slots[ykIndex]);
 
@@ -194,6 +195,7 @@ void signECDSA(BYTE *hashToSign, BYTE ykIndex)
 
 void getECDHPoint(BYTE ykIndex, BYTE *euphemeralKey)
 {
+    ecdhPointLen = PRIME_LEN;
     rc = ykpiv_decipher_data(g_state, euphemeralKey, 65, ecdhPoint, &ecdhPointLen, YKPIV_ALGO_ECCP256, key_slots[ykIndex]);
 
     if (rc != 0)
@@ -272,7 +274,7 @@ BYTE *getNextKey(INT *publicKeySize)
     return ecc_public_key;
 }
 
-BYTE *getPublicKey(INT archEthicIndex, INT *publicKeySize)
+BYTE *getPastKey(INT archEthicIndex, INT *publicKeySize)
 {
     INT offset = getArchEthicIndex() - archEthicIndex;
     if (offset > 19 || offset < 0)
@@ -287,6 +289,7 @@ BYTE *getPublicKey(INT archEthicIndex, INT *publicKeySize)
 BYTE *getRootCertificate(INT *certificateSize)
 {
     BYTE *pb = 0;
+    ykCertificateLen = 2048;
     ykpiv_util_read_cert(g_state, 0xf9, &pb, &ykCertificateLen);
 
     memcpy(ykCertificate, pb, ykCertificateLen);
@@ -296,7 +299,8 @@ BYTE *getRootCertificate(INT *certificateSize)
 }
 
 BYTE *getCurrentCertificate(INT *certificateSize)
-{
+{   
+    ykCertificateLen = 2048;
     INT currentKeyIndex = (getYKIndex() - 1 + 20) % 20;
     ykpiv_fetch_object(g_state, key_certificates[currentKeyIndex], ykCertificate, &ykCertificateLen);
     memcpy(certificateSize, &ykCertificateLen, sizeof(ykCertificateLen));
@@ -304,7 +308,8 @@ BYTE *getCurrentCertificate(INT *certificateSize)
 }
 
 BYTE *getNextCertificate(INT *certificateSize)
-{
+{   
+    ykCertificateLen = 2048;
     ykpiv_fetch_object(g_state, key_certificates[getYKIndex()], ykCertificate, &ykCertificateLen);
     memcpy(certificateSize, &ykCertificateLen, sizeof(ykCertificateLen));
     return ykCertificate;
@@ -312,6 +317,7 @@ BYTE *getNextCertificate(INT *certificateSize)
 
 BYTE *getPastCertificate(INT archEthicIndex, INT *certificateSize)
 {
+    ykCertificateLen = 2048;
     INT offset = getArchEthicIndex() - archEthicIndex;
     if (offset > 19 || offset < 0)
         return NULL;
