@@ -333,7 +333,9 @@ BYTE *signCurrentKey(BYTE *hashToSign, INT *eccSignSize)
     INT currentKeyIndex = (getYKIndex() - 1 + 20) % 20;
     verifyPinYK();
     signECDSA(hashToSign, currentKeyIndex);
-    memcpy(eccSignSize, &asnSignSize, sizeof(asnSignSize));
+    //Prevent memory overwrites
+    INT signLength = asnSignSize;
+    memcpy(eccSignSize, &signLength, sizeof(signLength));
     return sigEccASN;
 }
 
