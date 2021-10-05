@@ -45,7 +45,7 @@ void main()
  unsigned char secret[65];
  size_t len = 65;
 
- res = ykpiv_decipher_data(g_state, test_key, 65, secret, &len , YKPIV_ALGO_ECCP256, 0x9a);
+ res = ykpiv_decipher_data(g_state, test_key, 65, secret, &len , YKPIV_ALGO_ECCP256, 0x82);
 
      if(res==0)
      {
