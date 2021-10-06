@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "stdio_helpers.h"
-#include "uniris-yubikey.h"
+#include "uniris-yubikey-v2.h"
 
 void write_error(unsigned char *buf, char *error_message, int error_message_len);
 
