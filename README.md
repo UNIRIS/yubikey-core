@@ -41,6 +41,7 @@ YubiKeyAE.initialize_yk
 ## Library Functions for Elixir support
 
 ```console
+YubiKeyAE.check_yk_connection
 YubiKeyAE.get_archethic_index
 YubiKeyAE.increment_index
 YubiKeyAE.get_root_key
