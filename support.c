@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "stdio_helpers.h"
-#include "uniris-yubikey-v2.h"
+#include "uniris-yubikey.h"
 
 void write_error(unsigned char *buf, char *error_message, int error_message_len);
 
@@ -23,7 +23,8 @@ enum
     SIGN_CURRENT_KEY = 12,
     SIGN_PAST_KEY = 13,
     ECDH_CURRENT_KEY = 14,
-    ECDH_PAST_KEY = 15
+    ECDH_PAST_KEY = 15,
+    CHECK_YK_CONNECTION = 16
 };
 
 void initialize_yk(unsigned char *buf, int pos, int len)
@@ -39,10 +40,27 @@ void initialize_yk(unsigned char *buf, int pos, int len)
         response[i] = buf[i];
     }
 
-    // Encoding of success
-    response[4] = 1;
+    // Encoding of success(1) or failure(0)
+    response[4] = checkYK();
     write_response(response, response_len);
 }
+
+void check_yk_connection(unsigned char *buf, int pos, int len)
+{
+    int response_len = 5;
+    unsigned char response[response_len];
+
+    //Encoding of the request id
+    for (int i = 0; i < 4; i++)
+    {
+        response[i] = buf[i];
+    }
+
+    // Encoding of status (1 if connected, else 0)
+    response[4] = checkYK();
+    write_response(response, response_len);
+}
+
 
 void get_archethic_index(unsigned char *buf, int pos, int len)
 {
@@ -480,6 +498,9 @@ int main()
         {
         case INITIALIZE_YK:
             initialize_yk(buf, pos, len);
+            break;
+        case CHECK_YK_CONNECTION:
+            check_yk_connection(buf, pos, len);
             break;
         case GET_ARCHETHIC_INDEX:
             get_archethic_index(buf, pos, len);

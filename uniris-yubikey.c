@@ -59,6 +59,21 @@ void initializeYK()
     _ykIndex = getYKIndex();
 }
 
+bool checkYK()
+{
+    char list[100];
+    size_t list_len=100;
+    ykpiv_list_readers(g_state, list, &list_len);
+
+    if (strstr(list, "Yubico YubiKey") != NULL)
+        return true;
+
+    else
+        return false;
+}
+
+
+
 void verifyPinYK()
 {
     rc = ykpiv_verify(g_state, "123456", NULL);

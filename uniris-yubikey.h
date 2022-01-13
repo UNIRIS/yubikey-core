@@ -4,6 +4,7 @@ typedef unsigned char BYTE;
 typedef unsigned short INT;
 
 void initializeYK();
+bool checkYK();
 INT getArchEthicIndex();
 bool incrementIndex();
 

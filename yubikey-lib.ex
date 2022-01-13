@@ -13,6 +13,10 @@ defmodule YubiKeyAE do
     GenServer.call(__MODULE__, {:initialize_yk})
   end
 
+  def check_yk_connection() do
+    GenServer.call(__MODULE__, {:check_yk_connection})
+  end
+
   def get_archethic_index() do
     {:ok, <<index::16>>} = GenServer.call(__MODULE__, {:get_archethic_index})
     index
@@ -110,6 +114,11 @@ defmodule YubiKeyAE do
 
   def handle_call({:initialize_yk}, from, state) do
     {id, state} = send_request(state, 1)
+    {:noreply, %{state | awaiting: Map.put(state.awaiting, id, from)}}
+  end
+
+  def handle_call({:check_yk_connection}, from, state) do
+    {id, state} = send_request(state, 16)
     {:noreply, %{state | awaiting: Map.put(state.awaiting, id, from)}}
   end
 

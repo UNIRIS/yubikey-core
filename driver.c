@@ -4,6 +4,8 @@
 void main()
 {
     initializeYK();
+    int is_connected = checkYK();
+    printf("Connected: %s\n",  is_connected? "True" : "False");
 
     INT publicKeySize = 0;
     BYTE *ecckey = getCurrentKey(&publicKeySize);
