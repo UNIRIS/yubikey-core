@@ -1,3 +1,19 @@
+/*******************************************************************************
+ *   Archethic Yubikey Library
+ *   (c) 2021 Varun Deshpande, Uniris
+ *
+ *  Licensed under the GNU Affero General Public License, Version 3 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      https://www.gnu.org/licenses/agpl-3.0.en.html
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ ********************************************************************************/
 // Compile: gcc support.c -o support stdio_helpers.c uniris-yubikey.c -lykpiv -lcrypto
 #include <err.h>
 #include <stdio.h>
@@ -34,7 +50,7 @@ void initialize_yk(unsigned char *buf, int pos, int len)
     int response_len = 5;
     unsigned char response[response_len];
 
-    //Encoding of the request id
+    // Encoding of the request id
     for (int i = 0; i < 4; i++)
     {
         response[i] = buf[i];
@@ -50,7 +66,7 @@ void check_yk_connection(unsigned char *buf, int pos, int len)
     int response_len = 5;
     unsigned char response[response_len];
 
-    //Encoding of the request id
+    // Encoding of the request id
     for (int i = 0; i < 4; i++)
     {
         response[i] = buf[i];
@@ -60,7 +76,6 @@ void check_yk_connection(unsigned char *buf, int pos, int len)
     response[4] = checkYK();
     write_response(response, response_len);
 }
-
 
 void get_archethic_index(unsigned char *buf, int pos, int len)
 {
@@ -483,7 +498,7 @@ int main()
             free(buf);
             err(EXIT_FAILURE, "missing request id");
         }
-        int pos = 4; //After the 32 bytes of the request id
+        int pos = 4; // After the 32 bytes of the request id
 
         if (len < 5)
         {
@@ -556,7 +571,7 @@ void write_error(unsigned char *buf, char *error_message, int error_message_len)
     int response_size = 5 + error_message_len;
     unsigned char response[response_size];
 
-    //Encode the request id
+    // Encode the request id
     for (int i = 0; i < 4; i++)
     {
         response[i] = buf[i];
@@ -565,7 +580,7 @@ void write_error(unsigned char *buf, char *error_message, int error_message_len)
     // Error response type
     response[4] = 0;
 
-    //Encode the error message
+    // Encode the error message
     for (int i = 0; i < error_message_len; i++)
     {
         response[5 + i] = error_message[i];

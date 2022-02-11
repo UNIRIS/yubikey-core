@@ -1,3 +1,19 @@
+/*******************************************************************************
+ *   Archethic Yubikey Library
+ *   (c) 2021 Varun Deshpande, Uniris
+ *
+ *  Licensed under the GNU Affero General Public License, Version 3 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      https://www.gnu.org/licenses/agpl-3.0.en.html
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ ********************************************************************************/
 #include <stdio.h>
 #include <string.h>
 #include <ykpiv/ykpiv.h>
@@ -62,7 +78,7 @@ void initializeYK()
 bool checkYK()
 {
     char list[100];
-    size_t list_len=100;
+    size_t list_len = 100;
     ykpiv_list_readers(g_state, list, &list_len);
 
     if (strstr(list, "Yubico YubiKey") != NULL)
@@ -71,8 +87,6 @@ bool checkYK()
     else
         return false;
 }
-
-
 
 void verifyPinYK()
 {
@@ -173,7 +187,7 @@ void generateCertificate(BYTE ykIndex)
 
 BYTE getYKIndex()
 {
-    //Check why extra 2 bytes are needed?
+    // Check why extra 2 bytes are needed?
     BYTE index_yk[5] = {0};
     size_t index_length = sizeof(index_yk);
     rc = ykpiv_fetch_object(g_state, YKPIV_OBJ_KEY_HISTORY, index_yk, &index_length);
@@ -189,7 +203,7 @@ void saveIndex(BYTE ykIndex, INT archEthicIndex)
     BYTE index_raw[3] = {0};
 
     index_raw[0] = ykIndex;
-    //big endian
+    // big endian
     index_raw[1] = archEthicIndex >> 8;
     index_raw[2] = archEthicIndex;
 
@@ -227,7 +241,7 @@ void getECDHPoint(BYTE ykIndex, BYTE *euphemeralKey)
 
 INT getArchEthicIndex()
 {
-    //Check why extra 2 bytes are needed?
+    // Check why extra 2 bytes are needed?
     BYTE index_yk[5] = {0};
     size_t index_length = sizeof(index_yk);
     rc = ykpiv_fetch_object(g_state, YKPIV_OBJ_KEY_HISTORY, index_yk, &index_length);
@@ -358,7 +372,7 @@ BYTE *signCurrentKey(BYTE *hashToSign, INT *eccSignSize)
     INT currentKeyIndex = (_ykIndex - 1 + 20) % 20;
     verifyPinYK();
     signECDSA(hashToSign, currentKeyIndex);
-    //Prevent memory overwrites
+    // Prevent memory overwrites
     INT signLength = asnSignSize;
     memcpy(eccSignSize, &signLength, sizeof(signLength));
     return sigEccASN;

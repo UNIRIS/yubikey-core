@@ -1,8 +1,25 @@
+/*******************************************************************************
+ *   Archethic Yubikey Library
+ *   (c) 2021 Varun Deshpande, Uniris
+ *
+ *  Licensed under the GNU Affero General Public License, Version 3 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      https://www.gnu.org/licenses/agpl-3.0.en.html
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ ********************************************************************************/
+
 /* Stores 24 key indexes by converting each int index into 2 bytes raw format.
  Uses Key History Object to store the raw indexes and the subsequently fetches
  the raw saved indexes from it and recovers the indexes after conversion. */
 
-//Compile gcc save_index.c -lykpiv -o save_index
+// Compile gcc save_index.c -lykpiv -o save_index
 
 #include <stdio.h>
 #include <string.h>
@@ -40,11 +57,11 @@ void main()
     unsigned short index = 2;
     unsigned char index_raw[3] = {0};
 
-    index_raw[0]= 1;
-        //big endian
-        index_raw[1] = index >> 8;
-        index_raw[2] = index;
-  
+    index_raw[0] = 1;
+    // big endian
+    index_raw[1] = index >> 8;
+    index_raw[2] = index;
+
     res = ykpiv_save_object(g_state, YKPIV_OBJ_KEY_HISTORY, index_raw, sizeof(index_raw));
 
     if (res == 0)
@@ -78,17 +95,16 @@ void main()
 
     unsigned short yk_index;
 
-        yk_index = index_yk[1] << 8;
-        yk_index += index_yk[2];
+    yk_index = index_yk[1] << 8;
+    yk_index += index_yk[2];
 
     printf("\nRecovered: %d\n", index_yk[0]);
-    printf("\nOldest Key: %d\n", (index_yk[0]+1)%20);
-    printf("\nPrevious Key: %d\n", (index_yk[0]-1+20)%20);
+    printf("\nOldest Key: %d\n", (index_yk[0] + 1) % 20);
+    printf("\nPrevious Key: %d\n", (index_yk[0] - 1 + 20) % 20);
     printf("\nRecovered: %d\n", yk_index);
 
     unsigned short x = 9981;
     unsigned short offset = yk_index - x;
-    
-    
-    printf("\nSlot: %d\n", (index_yk[0]-offset+20)%20);
+
+    printf("\nSlot: %d\n", (index_yk[0] - offset + 20) % 20);
 }
